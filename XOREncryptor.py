@@ -5,6 +5,14 @@
 import sys
 import os
 import argparse
+from tqdm.rich import tqdm
+from rich import print
+
+import warnings
+from tqdm import TqdmExperimentalWarning
+
+# 忽略tqdm的实验性警告
+warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 
 def encrypt_file(file_name, key):
@@ -17,10 +25,13 @@ def encrypt_file(file_name, key):
     with open(file_name, 'rb') as f:
         data = f.read()
     data = bytearray(data)
-    for i in range(len(data)):
+
+    pbar = tqdm(range(len(data)), desc="Encrypting", unit="B", unit_scale=True, unit_divisor=1024)
+    for i in pbar:
         data[i] ^= key
     with open(file_name, 'wb') as f:
         f.write(data)
+    print(f"[green]Encryption of {file_name} completed![/green]")
 
 
 def decrypt_file(file_name, key):
@@ -72,8 +83,12 @@ def main():
         else:
             encrypt_dir(args.path, args.key)
     else:
-        print('path not exists')
+        print('[red]Error: Invalid path![/red]')
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('[red]KeyboardInterrupt[/red]')
+        sys.exit(1)
