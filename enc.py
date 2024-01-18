@@ -7,7 +7,7 @@ import os
 import argparse
 
 
-def enc_file(file_name, key):
+def encrypt_file(file_name, key):
     """
     加密文件
     :param file_name: 文件名
@@ -23,17 +23,17 @@ def enc_file(file_name, key):
         f.write(data)
 
 
-def dec_file(file_name, key):
+def decrypt_file(file_name, key):
     """
     解密文件
     :param file_name: 文件名
     :param key: 密钥
     :return:
     """
-    enc_file(file_name, key)
+    encrypt_file(file_name, key)
 
 
-def enc_dir(dir_name, key):
+def encrypt_dir(dir_name, key):
     """
     加密目录下所有文件
     :param dir_name: 目录名
@@ -42,17 +42,17 @@ def enc_dir(dir_name, key):
     """
     for root, dirs, files in os.walk(dir_name):
         for file in files:
-            enc_file(os.path.join(root, file), key)
+            encrypt_file(os.path.join(root, file), key)
 
 
-def dec_dir(dir_name, key):
+def decrypt_dir(dir_name, key):
     """
     解密目录下所有文件
     :param dir_name: 目录名
     :param key: 密钥
     :return:
     """
-    enc_dir(dir_name, key)
+    encrypt_dir(dir_name, key)
 
 
 def main():
@@ -63,14 +63,14 @@ def main():
     args = parser.parse_args()
     if os.path.isfile(args.path):
         if args.decrypt:
-            dec_file(args.path, args.key)
+            decrypt_file(args.path, args.key)
         else:
-            enc_file(args.path, args.key)
+            encrypt_file(args.path, args.key)
     elif os.path.isdir(args.path):
         if args.decrypt:
-            dec_dir(args.path, args.key)
+            decrypt_dir(args.path, args.key)
         else:
-            enc_dir(args.path, args.key)
+            encrypt_dir(args.path, args.key)
     else:
         print('path not exists')
 
