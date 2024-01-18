@@ -1,17 +1,25 @@
 """
 读取命令行参数，对二进制文件进行加密，解密
+使用异或运算，加密解密使用同一函数
+
+usage: python XOREncryptor.py [-h] [-k KEY] [-d] path
+
+author: ttiee
+time: 2024/1/18
+
+update: 2021/1/18
 """
 
-import sys
-import os
 import argparse
-from tqdm.rich import tqdm
-from rich import print
-
+import os
+import sys
 import warnings
-from tqdm import TqdmExperimentalWarning
 
-# 忽略tqdm的实验性警告
+from rich import print
+from tqdm import TqdmExperimentalWarning
+from tqdm.rich import tqdm
+
+# ignore tqdm experimental warning
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 
