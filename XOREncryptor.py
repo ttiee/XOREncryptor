@@ -1,10 +1,26 @@
 """
 读取命令行参数，对二进制文件进行加密，解密
+使用异或运算，加密解密使用同一函数
+
+usage: python XOREncryptor.py [-h] [-k KEY] [-d] path
+
+author: ttiee
+time: 2024/1/18
+
+update: 2021/1/18
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
+import warnings
+
+from rich import print
+from tqdm import TqdmExperimentalWarning
+from tqdm.rich import tqdm
+
+# ignore tqdm experimental warning
+warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 
 def encrypt_file(file_name, key):
@@ -17,10 +33,13 @@ def encrypt_file(file_name, key):
     with open(file_name, 'rb') as f:
         data = f.read()
     data = bytearray(data)
-    for i in range(len(data)):
+
+    pbar = tqdm(range(len(data)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
+    for i in pbar:
         data[i] ^= key
     with open(file_name, 'wb') as f:
         f.write(data)
+    print(f"[green]Encryption of {file_name} completed![/green]")
 
 
 def decrypt_file(file_name, key):
@@ -72,8 +91,15 @@ def main():
         else:
             encrypt_dir(args.path, args.key)
     else:
-        print('path not exists')
+        print('[red]Error: Invalid path![/red]')
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('[red]KeyboardInterrupt[/red]')
+        # print('[red]Program terminated![/red]')
+        print('Exit code: [red]1[/red]')
+        print('[green]Bye![/green]')
+        sys.exit(1)
