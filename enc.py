@@ -4,6 +4,7 @@
 
 import sys
 import os
+import argparse
 
 
 def enc_file(file_name, key):
@@ -55,30 +56,23 @@ def dec_dir(dir_name, key):
 
 
 def main():
-    """
-    主函数
-    :return:
-    """
-    if len(sys.argv) != 5:
-        print('Usage: enc.py [enc|dec] [file|dir] [name] [key]')
-        return
-    if sys.argv[1] == 'enc':
-        if sys.argv[2] == 'file':
-            enc_file(sys.argv[3], int(sys.argv[4]))
-        elif sys.argv[2] == 'dir':
-            enc_dir(sys.argv[3], int(sys.argv[4]))
+    parser = argparse.ArgumentParser(description='encrypt or decrypt files')
+    parser.add_argument('path', help='file or directory path')
+    parser.add_argument('-k', '--key', type=int, default=0, help='key')
+    parser.add_argument('-d', '--decrypt', action='store_true', help='decrypt')
+    args = parser.parse_args()
+    if os.path.isfile(args.path):
+        if args.decrypt:
+            dec_file(args.path, args.key)
         else:
-            print('Usage: enc.py [enc|dec] [file|dir] [name] [key]')
-    elif sys.argv[1] == 'dec':
-        if sys.argv[2] == 'file':
-            dec_file(sys.argv[3], int(sys.argv[4]))
-        elif sys.argv[2] == 'dir':
-            dec_dir(sys.argv[3], int(sys.argv[4]))
+            enc_file(args.path, args.key)
+    elif os.path.isdir(args.path):
+        if args.decrypt:
+            dec_dir(args.path, args.key)
         else:
-            print('Usage: enc.py [enc|dec] [file|dir] [name] [key]')
+            enc_dir(args.path, args.key)
     else:
-        print('Usage: enc.py [enc|dec] [file|dir] [name] [key]')
-    return
+        print('path not exists')
 
 
 if __name__ == '__main__':
