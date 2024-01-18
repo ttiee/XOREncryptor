@@ -26,7 +26,7 @@ def encrypt_file(file_name, key):
         data = f.read()
     data = bytearray(data)
 
-    pbar = tqdm(range(len(data)), desc="Encrypting", unit="B", unit_scale=True, unit_divisor=1024)
+    pbar = tqdm(range(len(data)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
     for i in pbar:
         data[i] ^= key
     with open(file_name, 'wb') as f:
@@ -91,4 +91,7 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('[red]KeyboardInterrupt[/red]')
+        # print('[red]Program terminated![/red]')
+        print('Exit code: [red]1[/red]')
+        print('[green]Bye![/green]')
         sys.exit(1)
