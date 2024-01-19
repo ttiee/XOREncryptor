@@ -2,12 +2,12 @@
 读取命令行参数，对二进制文件进行加密，解密
 使用异或运算，加密解密使用同一函数
 
-usage: python XOREncryptor.py [-h] [-k KEY] [-d] path
+usage: python XOREncryptor.py [-h] [-k KEY] [-d] [-o OUTPUT] path
 
 author: ttiee
 time: 2024/1/18
 
-update: 2021/1/18
+update: 2021/1/19
 """
 
 import argparse
@@ -23,33 +23,39 @@ from tqdm.rich import tqdm
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 
-def encrypt_file(file_name, key):
+def encrypt_file(file_name, key, output_file):
     """
     加密文件
     :param file_name: 文件名
     :param key: 密钥
+    :param output_file: 输出文件名
     :return:
     """
-    with open(file_name, 'rb') as f:
-        data = f.read()
-    data = bytearray(data)
+    with open(file_name, 'rb') as f, open(output_file, 'wb') as f2:
+        pbar = tqdm(range(os.path.getsize(file_name)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
+        while True:
+            data = f.read(1024)
+            if not data:
+                break
+            data = bytearray(data)
+            for i in range(len(data)):
+                data[i] ^= key
+            f2.write(data)
+            pbar.update(len(data))
+        pbar.close()
+    
+    print(f'[green]Encrypting finished![/green] [cyan]Output file: [/cyan][yellow]{os.path.abspath(output_file)}[/yellow]')
+    
 
-    pbar = tqdm(range(len(data)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
-    for i in pbar:
-        data[i] ^= key
-    with open(file_name, 'wb') as f:
-        f.write(data)
-    print(f"[green]Encryption of {file_name} completed![/green]")
-
-
-def decrypt_file(file_name, key):
+def decrypt_file(file_name, key, output_file):
     """
     解密文件
     :param file_name: 文件名
     :param key: 密钥
+    :param output_file: 输出文件名
     :return:
     """
-    encrypt_file(file_name, key)
+    encrypt_file(file_name, key, output_file)
 
 
 def encrypt_dir(dir_name, key):
@@ -76,22 +82,32 @@ def decrypt_dir(dir_name, key):
 
 def main():
     parser = argparse.ArgumentParser(description='encrypt or decrypt files')
-    parser.add_argument('path', help='file or directory path')
+    parser.add_argument('path', type=str, help='file or directory path')
     parser.add_argument('-k', '--key', type=int, default=0, help='key')
     parser.add_argument('-d', '--decrypt', action='store_true', help='decrypt')
+    parser.add_argument('-o', '--output', default=None, help='output file or directory')
     args = parser.parse_args()
+
+    if args.output is None:
+        args.output = os.path.splitext(args.path)[0] + ('_decrypted' if args.decrypt else '_encrypted') + os.path.splitext(args.path)[1]
+
+    if args.output == args.path:
+        print('[red]Error: [/red][yellow]Output file is the same as input file![/yellow]')
+        sys.exit(1)
+
     if os.path.isfile(args.path):
         if args.decrypt:
-            decrypt_file(args.path, args.key)
+            decrypt_file(args.path, args.key, args.output)
         else:
-            encrypt_file(args.path, args.key)
+            encrypt_file(args.path, args.key, args.output)
     elif os.path.isdir(args.path):
         if args.decrypt:
             decrypt_dir(args.path, args.key)
         else:
             encrypt_dir(args.path, args.key)
     else:
-        print('[red]Error: Invalid path![/red]')
+        print('[red]Error: [/red][yellow]Path not exists![/yellow]')
+        sys.exit(1)
 
 
 if __name__ == '__main__':
