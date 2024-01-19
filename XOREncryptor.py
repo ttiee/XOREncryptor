@@ -67,7 +67,7 @@ def encrypt_dir(dir_name, key):
     """
     for root, dirs, files in os.walk(dir_name):
         for file in files:
-            encrypt_file(os.path.join(root, file), key)
+            encrypt_file(os.path.join(root, file), key, os.path.join(root, 'encrypted_' + file))
 
 
 def decrypt_dir(dir_name, key):
