@@ -31,15 +31,19 @@ def encrypt_file(file_name, key, output_file):
     :param output_file: 输出文件名
     :return:
     """
-    with open(file_name, 'rb') as f:
-        data = f.read()
-    data = bytearray(data)
-
-    pbar = tqdm(range(len(data)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
-    for i in pbar:
-        data[i] ^= key
-    with open(output_file, 'wb') as f:
-        f.write(data)
+    with open(file_name, 'rb') as f, open(output_file, 'wb') as f2:
+        pbar = tqdm(range(os.path.getsize(file_name)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
+        while True:
+            data = f.read(1024)
+            if not data:
+                break
+            data = bytearray(data)
+            for i in range(len(data)):
+                data[i] ^= key
+            f2.write(data)
+            pbar.update(len(data))
+        pbar.close()
+    
     print(f'[green]Encrypting finished![/green] [cyan]Output file: [/cyan][yellow]{os.path.abspath(output_file)}[/yellow]')
     
 
@@ -85,7 +89,11 @@ def main():
     args = parser.parse_args()
 
     if args.output is None:
-        args.output = args.path
+        args.output = os.path.splitext(args.path)[0] + ('_decrypted' if args.decrypt else '_encrypted') + os.path.splitext(args.path)[1]
+
+    if args.output == args.path:
+        print('[red]Error: [/red][yellow]Output file is the same as input file![/yellow]')
+        sys.exit(1)
 
     if os.path.isfile(args.path):
         if args.decrypt:
