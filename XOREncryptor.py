@@ -31,6 +31,9 @@ def encrypt_file(file_name, key, output_file):
     :param output_file: 输出文件名
     :return:
     """
+    if os.path.exists(output_file):
+        print(f'[red]Error: [/red][yellow]Output file already exists: [/yellow][cyan]{output_file}[/cyan]')
+        return None
     with open(file_name, 'rb') as f, open(output_file, 'wb') as f2:
         pbar = tqdm(range(os.path.getsize(file_name)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
         while True:
@@ -58,26 +61,36 @@ def decrypt_file(file_name, key, output_file):
     encrypt_file(file_name, key, output_file)
 
 
-def encrypt_dir(dir_name, key):
+def encrypt_dir(dir_name, key, output_dir=None):
     """
     加密目录下所有文件
     :param dir_name: 目录名
     :param key: 密钥
+    :param output_dir: 输出目录
     :return:
     """
-    for root, dirs, files in os.walk(dir_name):
-        for file in files:
-            encrypt_file(os.path.join(root, file), key)
+    if output_dir is None:
+        output_dir = os.path.join(os.path.dirname(dir_name), 'encrypted_' + os.path.basename(dir_name))
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    for file_name in os.listdir(dir_name):
+        file_path = os.path.join(dir_name, file_name)
+        output_file = os.path.join(output_dir, file_name)
+        if os.path.isfile(file_path):
+            encrypt_file(file_path, key, output_file)
+        elif os.path.isdir(file_path):
+            encrypt_dir(file_path, key, output_file)
 
 
-def decrypt_dir(dir_name, key):
+def decrypt_dir(dir_name, key, output_dir=None):
     """
     解密目录下所有文件
     :param dir_name: 目录名
     :param key: 密钥
+    :param output_dir: 输出目录
     :return:
     """
-    encrypt_dir(dir_name, key)
+    encrypt_dir(dir_name, key, output_dir)
 
 
 def main():
@@ -88,23 +101,27 @@ def main():
     parser.add_argument('-o', '--output', default=None, help='output file or directory')
     args = parser.parse_args()
 
+    args.path = os.path.abspath(args.path)
+
     if args.output is None:
-        args.output = os.path.splitext(args.path)[0] + ('_decrypted' if args.decrypt else '_encrypted') + os.path.splitext(args.path)[1]
+        args.output = os.path.join(os.path.dirname(args.path), 'encrypted_' + os.path.basename(args.path))
 
     if args.output == args.path:
         print('[red]Error: [/red][yellow]Output file is the same as input file![/yellow]')
         sys.exit(1)
-
+    
     if os.path.isfile(args.path):
+        print(f'[cyan]Input file: [/cyan][yellow]{args.path}[/yellow]')
         if args.decrypt:
             decrypt_file(args.path, args.key, args.output)
         else:
             encrypt_file(args.path, args.key, args.output)
     elif os.path.isdir(args.path):
+        print(f'[cyan]Input directory: [/cyan][yellow]{args.path}[/yellow]')
         if args.decrypt:
-            decrypt_dir(args.path, args.key)
+            decrypt_dir(args.path, args.key, args.output)
         else:
-            encrypt_dir(args.path, args.key)
+            encrypt_dir(args.path, args.key, args.output)
     else:
         print('[red]Error: [/red][yellow]Path not exists![/yellow]')
         sys.exit(1)
