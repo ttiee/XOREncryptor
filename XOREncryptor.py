@@ -23,7 +23,7 @@ from tqdm.rich import tqdm
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 
-def encrypt_file(file_name, key, output_file):
+def encrypt_file(file_name, key, output_file, force=False):
     """
     加密文件
     :param file_name: 文件名
@@ -31,7 +31,7 @@ def encrypt_file(file_name, key, output_file):
     :param output_file: 输出文件名
     :return:
     """
-    if os.path.exists(output_file):
+    if os.path.exists(output_file) and not force:
         print(f'[red]Error: [/red][yellow]Output file already exists: [/yellow][cyan]{output_file}[/cyan]')
         return None
     with open(file_name, 'rb') as f, open(output_file, 'wb') as f2:
@@ -50,7 +50,7 @@ def encrypt_file(file_name, key, output_file):
     print(f'[green]Encrypting finished![/green] [cyan]Output file: [/cyan][yellow]{os.path.abspath(output_file)}[/yellow]')
     
 
-def decrypt_file(file_name, key, output_file):
+def decrypt_file(file_name, key, output_file, force=False):
     """
     解密文件
     :param file_name: 文件名
@@ -58,10 +58,10 @@ def decrypt_file(file_name, key, output_file):
     :param output_file: 输出文件名
     :return:
     """
-    encrypt_file(file_name, key, output_file)
+    encrypt_file(file_name, key, output_file, force)
 
 
-def encrypt_dir(dir_name, key, output_dir=None):
+def encrypt_dir(dir_name, key, output_dir=None, force=False):
     """
     加密目录下所有文件
     :param dir_name: 目录名
@@ -77,12 +77,12 @@ def encrypt_dir(dir_name, key, output_dir=None):
         file_path = os.path.join(dir_name, file_name)
         output_file = os.path.join(output_dir, file_name)
         if os.path.isfile(file_path):
-            encrypt_file(file_path, key, output_file)
+            encrypt_file(file_path, key, output_file, force)
         elif os.path.isdir(file_path):
-            encrypt_dir(file_path, key, output_file)
+            encrypt_dir(file_path, key, output_file, force)
 
 
-def decrypt_dir(dir_name, key, output_dir=None):
+def decrypt_dir(dir_name, key, output_dir=None, force=False):
     """
     解密目录下所有文件
     :param dir_name: 目录名
@@ -90,7 +90,7 @@ def decrypt_dir(dir_name, key, output_dir=None):
     :param output_dir: 输出目录
     :return:
     """
-    encrypt_dir(dir_name, key, output_dir)
+    encrypt_dir(dir_name, key, output_dir, force)
 
 
 def main():
@@ -99,6 +99,7 @@ def main():
     parser.add_argument('-k', '--key', type=int, default=0, help='key')
     parser.add_argument('-d', '--decrypt', action='store_true', help='decrypt')
     parser.add_argument('-o', '--output', default=None, help='output file or directory')
+    parser.add_argument('-f', '--force', action='store_true', help='force overwrite output file')
     args = parser.parse_args()
 
     args.path = os.path.abspath(args.path)
@@ -113,15 +114,15 @@ def main():
     if os.path.isfile(args.path):
         print(f'[cyan]Input file: [/cyan][yellow]{args.path}[/yellow]')
         if args.decrypt:
-            decrypt_file(args.path, args.key, args.output)
+            decrypt_file(args.path, args.key, args.output, args.force)
         else:
-            encrypt_file(args.path, args.key, args.output)
+            encrypt_file(args.path, args.key, args.output, args.force)
     elif os.path.isdir(args.path):
         print(f'[cyan]Input directory: [/cyan][yellow]{args.path}[/yellow]')
         if args.decrypt:
-            decrypt_dir(args.path, args.key, args.output)
+            decrypt_dir(args.path, args.key, args.output, args.force)
         else:
-            encrypt_dir(args.path, args.key, args.output)
+            encrypt_dir(args.path, args.key, args.output, args.force)
     else:
         print('[red]Error: [/red][yellow]Path not exists![/yellow]')
         sys.exit(1)
