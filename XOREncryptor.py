@@ -22,25 +22,27 @@ example:
 
 note:
     1. The key must be an integer
-    2. The key must be the same when encrypting and decrypting
-    3. The output file or directory must not exist, unless you use -f
 
 author: ttiee
 github: http://github/ttiee
+email: shrenqi@hotmail.com
+repository: https://github.com/ttiee/XOREncryptor
 
 time: 2024/1/18
 
-update: 2021/1/22
+update: 2024/1/22
 """
+__version__ = '0.5.4'
 
-import argparse
+# import re
 import os
 import sys
 import warnings
+import argparse
 
-from rich import print
 from tqdm import TqdmExperimentalWarning
 from tqdm.rich import tqdm
+from rich import print
 
 # ignore tqdm experimental warning
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
@@ -147,6 +149,8 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description='encrypt or decrypt files')
     parser.add_argument('path', type=str, help='file or directory path')
+    parser.add_argument('-v', '--version', action='version', version=f'XOREncryptor v{__version__}')
+    parser.add_argument('-e', '--expression', action='store_true', help='use regular expression')
     parser.add_argument('-k', '--key', type=int, default=0, help='key')
     parser.add_argument('-d', '--decrypt', action='store_true', help='decrypt')
     parser.add_argument('-o', '--output', default=None, help='output file or directory')
@@ -166,6 +170,10 @@ def analysis_args(args):
     if args.output is None:
         """如果没有指定输出文件或目录，则默认输出到encrypted_文件或目录"""
         args.output = os.path.join(os.path.dirname(args.path), 'encrypted_' + os.path.basename(args.path))
+
+    if args.expression:
+        # TODO: 使用正则表达式匹配文件或目录
+        pass
 
     if os.path.isfile(args.path):
         print(f'[cyan]Input file: [/cyan][yellow]{args.path}[/yellow]')
@@ -194,14 +202,10 @@ def main():
     主函数
     :return:
     """
-    args = get_args()
-    analysis_args(args)
-    sys.exit(0)
-
-
-if __name__ == '__main__':
     try:
-        main()
+        args = get_args()
+        analysis_args(args)
+        sys.exit(0)
     except KeyboardInterrupt:
         # Ctrl+C 退出
         if unfinished_file is not None:
@@ -211,3 +215,7 @@ if __name__ == '__main__':
         print('Exit code: [red]1[/red]')
         print('[green]Bye![/green]')
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
