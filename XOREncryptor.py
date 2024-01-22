@@ -44,6 +44,7 @@ from tqdm.rich import tqdm
 
 # ignore tqdm experimental warning
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
+unfinished_file = None
 
 
 def encrypt_file(args):
@@ -52,6 +53,8 @@ def encrypt_file(args):
     :param args: 命令行参数
     :return:
     """
+    global unfinished_file
+
     file_name = args.path
     key = args.key
     output_file = args.output
@@ -69,6 +72,7 @@ def encrypt_file(args):
         file_name += '.tmp'
 
     with open(file_name, 'rb') as f, open(output_file, 'wb') as f2:
+        unfinished_file = output_file
         pbar = tqdm(range(os.path.getsize(file_name)), desc="[green]Encrypting[/green]", unit="B", unit_scale=True, unit_divisor=1024)
         while True:
             data = f.read(1024)
@@ -81,6 +85,7 @@ def encrypt_file(args):
             f2.write(data)
             pbar.update(len(data))
         pbar.close()
+    unfinished_file = None  # 读取完毕，将未完成文件置空
 
     if File_name_Equal_Output_file:
         # 删除临时文件
@@ -105,9 +110,7 @@ def encrypt_dir(args):
     :return:
     """
     dir_name = args.path
-    key = args.key
     output_dir = args.output
-    force = args.force
 
     if output_dir is None:
         """如果没有指定输出目录，则默认输出到encrypted_目录"""
@@ -201,6 +204,9 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         # Ctrl+C 退出
+        if unfinished_file is not None:
+            # 如果有未完成的文件，则删除
+            os.remove(unfinished_file)
         print('[red]KeyboardInterrupt[/red]')
         print('Exit code: [red]1[/red]')
         print('[green]Bye![/green]')
