@@ -22,15 +22,15 @@ example:
 
 note:
     1. The key must be an integer
-    2. The key must be the same when encrypting and decrypting
-    3. The output file or directory must not exist, unless you use -f
 
 author: ttiee
 github: http://github/ttiee
+email: shrenqi@hotmail.com
+repository: https://github.com/ttiee/XOREncryptor
 
 time: 2024/1/18
 
-update: 2021/1/22
+update: 2024/1/22
 """
 
 import argparse
@@ -194,14 +194,10 @@ def main():
     主函数
     :return:
     """
-    args = get_args()
-    analysis_args(args)
-    sys.exit(0)
-
-
-if __name__ == '__main__':
     try:
-        main()
+        args = get_args()
+        analysis_args(args)
+        sys.exit(0)
     except KeyboardInterrupt:
         # Ctrl+C 退出
         if unfinished_file is not None:
@@ -211,3 +207,7 @@ if __name__ == '__main__':
         print('Exit code: [red]1[/red]')
         print('[green]Bye![/green]')
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
