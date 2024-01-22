@@ -7,3 +7,9 @@
 git clone https://github.com/ttiee/XOREncryptor.git
 pip install -r requirements.txt
 ```
+
+## Usage
+
+```bash
+python XOREncryptor.py [-h] [-k KEY] [-d] [-o OUTPUT] [-f] path
+```
