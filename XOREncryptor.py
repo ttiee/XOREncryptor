@@ -1,13 +1,36 @@
+# -*- coding: utf-8 -*-
+
 """
 读取命令行参数，对二进制文件进行加密，解密
 使用异或运算，加密解密使用同一函数
 
 usage: python XOREncryptor.py [-h] [-k KEY] [-d] [-o OUTPUT] [-f] path
 
+description:
+    Encrypt or decrypt files or directories
+
+options:
+    -h, --help            show this help message and exit
+    -k KEY, --key KEY     key
+    -d, --decrypt         decrypt
+    -o OUTPUT, --output OUTPUT
+                          output file or directory
+    -f, --force           force overwrite output file
+
+example:
+    python XOREncryptor.py -k 123456 -o encrypted_file -f file
+
+note:
+    1. The key must be an integer
+    2. The key must be the same when encrypting and decrypting
+    3. The output file or directory must not exist, unless you use -f
+
 author: ttiee
+github: http://github/ttiee
+
 time: 2024/1/18
 
-update: 2021/1/19
+update: 2021/1/22
 """
 
 import argparse
@@ -35,9 +58,11 @@ def encrypt_file(args):
     force = args.force
 
     if os.path.exists(output_file) and not force:
+        """如果输出文件已存在，且没有指定强制覆盖，则退出"""
         print(f'[cyan]Output file already exists: [/cyan][yellow]{os.path.abspath(output_file)}[/yellow] [cyan]Use -f to force overwrite[/cyan]')
         return None
     
+    # 如果输入文件和输出文件相同，则先重命名输入文件作为临时文件
     File_name_Equal_Output_file = os.path.abspath(file_name) == os.path.abspath(output_file)
     if File_name_Equal_Output_file:
         os.rename(file_name, file_name + '.tmp')
@@ -48,6 +73,7 @@ def encrypt_file(args):
         while True:
             data = f.read(1024)
             if not data:
+                # 读取完毕
                 break
             data = bytearray(data)
             for i in range(len(data)):
@@ -57,6 +83,7 @@ def encrypt_file(args):
         pbar.close()
 
     if File_name_Equal_Output_file:
+        # 删除临时文件
         os.remove(file_name)
     
     print(f'[green]Encrypting finished![/green] [cyan]Output file: [/cyan][yellow]{os.path.abspath(output_file)}[/yellow]')
@@ -83,12 +110,14 @@ def encrypt_dir(args):
     force = args.force
 
     if output_dir is None:
+        """如果没有指定输出目录，则默认输出到encrypted_目录"""
         output_dir = os.path.join(os.path.dirname(dir_name), 'encrypted_' + os.path.basename(dir_name))
     if not os.path.exists(output_dir):
+        """如果输出目录不存在，则创建"""
         os.mkdir(output_dir)
     for file_name in os.listdir(dir_name):
-        file_path = os.path.join(dir_name, file_name)
-        output_file = os.path.join(output_dir, file_name)
+        file_path = os.path.join(dir_name, file_name)   # 文件或目录的绝对路径
+        output_file = os.path.join(output_dir, file_name)   # 输出文件或目录的绝对路径
         if os.path.isfile(file_path):
             args.path = file_path
             args.output = output_file
@@ -108,7 +137,11 @@ def decrypt_dir(args):
     encrypt_dir(args)
 
 
-def main():
+def get_args():
+    """
+    设置命令行参数
+    :return:
+    """
     parser = argparse.ArgumentParser(description='encrypt or decrypt files')
     parser.add_argument('path', type=str, help='file or directory path')
     parser.add_argument('-k', '--key', type=int, default=0, help='key')
@@ -116,29 +149,50 @@ def main():
     parser.add_argument('-o', '--output', default=None, help='output file or directory')
     parser.add_argument('-f', '--force', action='store_true', help='force overwrite output file')
     args = parser.parse_args()
+    return args
 
+
+def analysis_args(args):
+    """
+    分析命令行参数
+    :param args: 命令行参数
+    :return:
+    """
     args.path = os.path.abspath(args.path)
 
     if args.output is None:
+        """如果没有指定输出文件或目录，则默认输出到encrypted_文件或目录"""
         args.output = os.path.join(os.path.dirname(args.path), 'encrypted_' + os.path.basename(args.path))
 
     if os.path.isfile(args.path):
         print(f'[cyan]Input file: [/cyan][yellow]{args.path}[/yellow]')
-        os.chdir(os.path.dirname(args.path))
+        # 切换到输入文件所在目录
+        os.chdir(os.path.dirname(args.path))    
         if args.decrypt:
             decrypt_file(args)
         else:
             encrypt_file(args)
     elif os.path.isdir(args.path):
         print(f'[cyan]Input directory: [/cyan][yellow]{args.path}[/yellow]')
+        # 切换到输入目录所在目录
         os.chdir(os.path.dirname(args.path))
         if args.decrypt:
             decrypt_dir(args)
         else:
             encrypt_dir(args)
     else:
+        # 输入路径不存在
         print('[red]Error: [/red][yellow]Path not exists![/yellow]')
         sys.exit(1)
+
+
+def main():
+    """
+    主函数
+    :return:
+    """
+    args = get_args()
+    analysis_args(args)
     sys.exit(0)
 
 
@@ -146,8 +200,8 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        # Ctrl+C 退出
         print('[red]KeyboardInterrupt[/red]')
-        # print('[red]Program terminated![/red]')
         print('Exit code: [red]1[/red]')
         print('[green]Bye![/green]')
         sys.exit(1)
